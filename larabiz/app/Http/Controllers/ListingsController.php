@@ -7,6 +7,10 @@ use App\Listing;
 
 class ListingsController extends Controller
 {
+    
+    public function __construct(){
+        $this->middleware('auth', ['except' =>['index', 'show']]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -14,7 +18,8 @@ class ListingsController extends Controller
      */
     public function index()
     {
-        //
+        $listings = Listing::orderBy('created_at', 'desc')->get();
+        return view('listings', ['listings' => $listings]);
     }
 
     /**
@@ -62,7 +67,8 @@ class ListingsController extends Controller
      */
     public function show($id)
     {
-        //
+        $listing = Listing::find($id);
+        return view('showlisting', ['listing' => $listing]);
     }
 
     /**
@@ -73,7 +79,8 @@ class ListingsController extends Controller
      */
     public function edit($id)
     {
-        //
+        $listing = Listing::find($id);
+        return view('editlisting', ['listing' => $listing]);
     }
 
     /**
@@ -85,7 +92,23 @@ class ListingsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'email'
+        ]);
+        
+        $listing = Listing::find($id);
+        $listing->name = $request->input('name');
+        $listing->website = $request->input('website');
+        $listing->email = $request->input('email');
+        $listing->phone = $request->input('phone');
+        $listing->address = $request->input('address');
+        $listing->bio = $request->input('bio');
+        $listing->user_id = auth()->user()->id;
+        
+        $listing->save();
+        
+        return redirect('/dashboard')->with('success', 'Listing Updated');
     }
 
     /**
@@ -96,6 +119,9 @@ class ListingsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $listing = Listing::find($id);
+        $listing->delete();
+        
+        return redirect('/dashboard')->with('success', 'Listing Deleted');
     }
 }
